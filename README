@@ -1,0 +1,12 @@
+Crypto exchanges quotes harvester
+Version: 1.9
+
+Console utility to get quotes from 2 crypto-exchanges, generate a quotes for synthetic instruments, and write all data into database.
+
+Requirements:
+
+
+Follow code conventions: https://bitbucket.org/FinPlant/public-documentation/wiki/Coding%20conventions or https://bit.ly/2oDc9Oj
+Application have to be fully workable, and compiles without warnings
+All errors should be treated as critical, they have to be logged, and application should be closed
+Deadline is 2 weeks + extra time for review
