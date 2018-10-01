@@ -6,3 +6,12 @@
  */
 apply plugin: 'java'
 apply plugin: 'eclipse'
+
+allprojects {
+	repositories {
+		maven { url 'https://jitpack.io' }
+	}
+}
+dependencies {
+        implementation 'com.github.FinPlant.xchange-stream:service-core:develop-SNAPSHOT'
+}
