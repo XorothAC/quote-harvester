@@ -7,11 +7,21 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-allprojects {
-	repositories {
-		maven { url 'https://jitpack.io' }
-	}
+sourceSets {
+    main {
+        java {
+            srcDirs = ["src"]
+        }
+    }
 }
+
+repositories {
+	mavenCentral()
+	maven { url 'https://jitpack.io' }
+}
+
 dependencies {
-        implementation 'com.github.FinPlant.xchange-stream:service-core:develop-SNAPSHOT'
+    implementation 'com.github.FinPlant.xchange-stream:xchange-stream-core:develop-SNAPSHOT'
+    implementation 'com.github.FinPlant.xchange-stream:xchange-binance:develop-SNAPSHOT'
+    implementation 'com.github.FinPlant.xchange-stream:xchange-poloniex:develop-SNAPSHOT' 
 }
