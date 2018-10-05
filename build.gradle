@@ -19,7 +19,11 @@ dependencies {
     
     testCompile group: 'junit', name: 'junit', version: '4.+'
     
+    //compile 'info.bitrich.xchange-stream:xchange-stream-core:4.3.2'
+    //compile 'info.bitrich.xchange-stream:xchange-poloniex:4.3.2'
+    //compile 'info.bitrich.xchange-stream:xchange-binance:4.3.2'
     implementation 'com.github.FinPlant.xchange-stream:xchange-stream-core:develop-SNAPSHOT'
     implementation 'com.github.FinPlant.xchange-stream:xchange-binance:develop-SNAPSHOT'
-    implementation 'com.github.FinPlant.xchange-stream:xchange-poloniex:develop-SNAPSHOT' 
+    implementation 'com.github.FinPlant.xchange-stream:xchange-poloniex:develop-SNAPSHOT'
+    implementation 'com.github.FinPlant.xchange-stream:xchange-poloniex2:develop-SNAPSHOT' 
 }
