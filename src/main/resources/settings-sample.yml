@@ -1,0 +1,20 @@
+db:
+   url: placeholder
+   user: placeholder
+   password: placeholder
+flush_period_s: 2
+instruments:
+ - name: BTCUSD
+   instrument: BTC/USDT
+ - name: ETHUSD
+   instrument: ETH/USDT
+ - name: ETHUSD-synth1
+   instrument: ETH/USD
+   depends:
+      - ETH/BTC
+      - BTC/USDT
+ - name: ETHUSD-synth2
+   instrument: ETH/USD
+   depends:
+      - ETH/BCH
+      - USD/BCH

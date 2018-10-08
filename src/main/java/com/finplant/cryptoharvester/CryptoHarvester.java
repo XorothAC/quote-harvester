@@ -12,6 +12,12 @@ public class CryptoHarvester {
 	private static final Logger LOG = LoggerFactory.getLogger(CryptoHarvester.class);
 	
 	public static void main(String[] args) {
+		// Initialization Code
+		Settings test = Settings.readYaml();
+		LOG.info(test.getInstruments().get(1).getInstrument());
+
+		System.exit(0);
+		// Application Code
 		StreamingExchange binanceExchange = 
 				StreamingExchangeFactory.INSTANCE.createExchange(BinanceStreamingExchange.class.getName());
 
