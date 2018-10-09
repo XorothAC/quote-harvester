@@ -10,12 +10,15 @@ import org.slf4j.LoggerFactory;
 
 public class CryptoHarvester {
 	private static final Logger LOG = LoggerFactory.getLogger(CryptoHarvester.class);
+	private static final Settings setup = Settings.readYaml();
 	
 	public static void main(String[] args) {
 		// Initialization Code
-		Settings test = Settings.readYaml();
-		LOG.info(test.getInstruments().get(1).getInstrument());
-
+		DatabaseCRUD db = 
+				new DatabaseCRUD(setup.getDb().get("url"), setup.getDb().get("user"), setup.getDb().get("password"));
+		
+		db.connectDB();
+		
 		System.exit(0);
 		// Application Code
 		StreamingExchange binanceExchange = 

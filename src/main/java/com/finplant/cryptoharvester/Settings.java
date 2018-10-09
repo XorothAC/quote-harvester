@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class Settings {
-	private static final Logger LOG = LoggerFactory.getLogger(CryptoHarvester.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Settings.class);
 
 	private Map<String, String> db;
 	private String flush_period_s;
