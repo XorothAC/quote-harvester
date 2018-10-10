@@ -14,7 +14,7 @@ class Settings {
 	private static final Logger LOG = LoggerFactory.getLogger(Settings.class);
 
 	private Map<String, String> db;
-	private String flush_period_s;
+	private int flush_period_s;
 	private List<Instrument> instruments;
 	
 	public Map<String, String> getDb() {
@@ -25,11 +25,11 @@ class Settings {
 		this.db = db;
 	}
 
-	public String getFlush_period_s() {
+	public int getFlush_period_s() {
 		return flush_period_s;
 	}
 
-	public void setFlush_period_s(String flush_period_s) {
+	public void setFlush_period_s(int flush_period_s) {
 		this.flush_period_s = flush_period_s;
 	}
 
@@ -56,7 +56,7 @@ class Settings {
 	static class Instrument {
 		private String name;
 		private String instrument;
-		private String[] depends;
+		private List<String> depends;
 		
 		public String getName() {
 			return name;
@@ -70,10 +70,10 @@ class Settings {
 		public void setInstrument(String instrument) {
 			this.instrument = instrument;
 		}
-		public String[] getDepends() {
+		public List<String> getDepends() {
 			return depends;
 		}
-		public void setDepends(String[] depends) {
+		public void setDepends(List<String> depends) {
 			this.depends = depends;
 		}
 		

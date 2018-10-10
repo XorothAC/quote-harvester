@@ -6,6 +6,7 @@ import java.util.Date;
 import org.knowm.xchange.currency.CurrencyPair;
 
 public class Quote {
+	
 	private Date timestamp;
 	private BigDecimal bid;
 	private BigDecimal ask;
@@ -18,6 +19,30 @@ public class Quote {
 		this.ask = ask;
 		this.exchange = exchange;
 		this.name = name;
+	}
+	
+	@Override
+	public boolean equals (Object object) {
+		boolean result = false;
+		if (object == null) {
+			result = false;
+		} else {
+			Quote quote = (Quote) object;
+			if (this.getExchange().equals(quote.getExchange()) && this.getName().equals(quote.getName())) {
+				result = true;
+			}
+		}
+		
+		return result;
+	}
+	
+	@Override
+	public String toString() {
+		return "Timestamp: " + this.timestamp + 
+				" Bid: " + this.bid + 
+				" Ask: " + this.ask + 
+				" Exchange:" + this.exchange + 
+				" Name: "+this.name;
 	}
 	
 	public Date getTimestamp() {
