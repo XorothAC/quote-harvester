@@ -30,7 +30,6 @@ public class CryptoHarvester {
 		
 		StreamingExchange binanceExchange = 
 				StreamingExchangeFactory.INSTANCE.createExchange(BinanceStreamingExchange.class.getName());
-
 		StreamingExchange poloniexExchange = 
 				StreamingExchangeFactory.INSTANCE.createExchange(PoloniexStreamingExchange.class.getName());
 
@@ -40,12 +39,13 @@ public class CryptoHarvester {
 				CurrencyPair currencyPair = new CurrencyPair(instrument.getInstrument());
 				LOG.info(currencyPair.toString());
 				subscribeToExchange(binanceExchange, currencyPair, instrument.getName(), quoteBuffer);
-				//subscribeToExchange(poloniexExchange, instrument, quoteBuffer);
+				subscribeToExchange(poloniexExchange, currencyPair, instrument.getName(), quoteBuffer);
 			} else {
 				for (String syntheticPair : instrument.getDepends()) {
 					CurrencyPair currencyPair = new CurrencyPair(syntheticPair);
+					LOG.info(currencyPair.toString());
 					subscribeToExchange(binanceExchange, currencyPair, instrument.getName(), syntheticQuoteBuffer);
-					//subscribeToExchange(poloniexExchange, instrument, syntheticQuoteBuffer);
+					subscribeToExchange(poloniexExchange, currencyPair, instrument.getName(), syntheticQuoteBuffer);
 				}
 			}
 		}
@@ -56,31 +56,35 @@ public class CryptoHarvester {
 			for (Instrument instrument : setup.getInstruments()) {
 				if (instrument.getDepends() != null && !syntheticQuoteBuffer.isEmpty()) {
 					LOG.info(String.valueOf(syntheticQuoteBuffer.size()));
-					Quote binanceQuote = syntheticInsrumentGenerator(binanceExchange, syntheticQuoteBuffer, instrument);
-//					Quote poloniexQuote = syntheticInsrumentGenerator(poloniexExchange, syntheticQuoteBuffer, instrument);
+					Quote binanceQuote = 
+							syntheticInsrumentGenerator(binanceExchange, syntheticQuoteBuffer, instrument);
+					Quote poloniexQuote = 
+							syntheticInsrumentGenerator(poloniexExchange, syntheticQuoteBuffer, instrument);
 					
 					if (binanceQuote != null) {
 						addOrReplaceQuote(quoteBuffer, binanceQuote);
 					}
-//					addOrReplaceQuote(quoteBuffer, poloniexQuote);
+					
+					if (poloniexQuote != null) {
+						addOrReplaceQuote(quoteBuffer, poloniexQuote);
+					}
 				}
 			}
 			
-			
-			
-			LOG.info(quoteBuffer.get(0).toString());
-			LOG.info(quoteBuffer.get(1).toString());
-			LOG.info(quoteBuffer.get(2).toString());
-			LOG.info(String.valueOf(quoteBuffer.size()));
-			LOG.info(syntheticQuoteBuffer.get(0).toString());
-			LOG.info(syntheticQuoteBuffer.get(1).toString());
-			LOG.info(String.valueOf(syntheticQuoteBuffer.size()));
+			LOG.info("Size of quote buffer: " + String.valueOf(quoteBuffer.size()));
+			for (Quote quote : quoteBuffer) {
+				LOG.info(quote.toString());
+			}
+			LOG.info("Size of synthetic quote buffer: " + String.valueOf(syntheticQuoteBuffer.size()));
+			for (Quote quote : syntheticQuoteBuffer) {
+				LOG.info(quote.toString());
+			}
 			db.writeToDB(quoteBuffer);
-			LOG.info("Lorem Ipsum");
 		}
 	}
 	
-	public static void subscribeToExchange(StreamingExchange exchange, CurrencyPair currencyPair, String instrument, List<Quote> buffer) {
+	public static void subscribeToExchange(StreamingExchange exchange, CurrencyPair currencyPair, 
+			String instrument, List<Quote> buffer) {
 		// Specify subscription objects
 		ProductSubscription subscription = 
 				ProductSubscription.create().addTicker(currencyPair).build();
@@ -125,16 +129,15 @@ public class CryptoHarvester {
 		
 		String instrument1 = instrument.getDepends().get(0);
 		String instrument2 = instrument.getDepends().get(1);
-		LOG.info(instrument1);
-		LOG.info(instrument2);
-		LOG.info(String.valueOf(buffer.size()));
-		LOG.info(exchange.toString());
 
-		int bufferIndex1 = buffer.indexOf(new Quote(null, null, null, exchange.toString(), instrument.getName(), new CurrencyPair(instrument1)));
-		int bufferIndex2 = buffer.indexOf(new Quote(null, null, null, exchange.toString(), instrument.getName(), new CurrencyPair(instrument2)));
+		int bufferIndex1 = buffer.indexOf(new Quote(null, null, null, 
+				exchange.toString(), instrument.getName(), new CurrencyPair(instrument1)));
+		int bufferIndex2 = buffer.indexOf(new Quote(null, null, null, 
+				exchange.toString(), instrument.getName(), new CurrencyPair(instrument2)));
 		
 		if (bufferIndex1 > -1 && bufferIndex2 > -1) {
-			quote = new Quote(null, null, null, exchange.toString(), instrument.getName(), new CurrencyPair(instrument.getInstrument()));
+			quote = new Quote(null, null, null, 
+					exchange.toString(), instrument.getName(), new CurrencyPair(instrument.getInstrument()));
 			Quote quote1 = buffer.get(bufferIndex1);
 			Quote quote2 = buffer.get(bufferIndex2);
 			

@@ -49,12 +49,9 @@ class DatabaseCRUD {
 					quote.getExchange() + "', '" + 
 					quote.getName() + "')";
 		}
-		LOG.info(quotesString);
 		quotesString = quotesString.substring(1);
-		LOG.info(quotesString);
 		String sql = "INSERT INTO QUOTES (TIME, BID, ASK, EXCHANGE, NAME) " +
 				"VALUES"+quotesString;
-		LOG.info(sql);
 		quotes.clear();
 		connectAndExecute(sql);
 	}
