@@ -11,14 +11,16 @@ public class Quote {
 	private BigDecimal bid;
 	private BigDecimal ask;
 	private String exchange;
-	private CurrencyPair name;
+	private String name;
+	private CurrencyPair currencyPair;
 	
-	public Quote(Date timestamp, BigDecimal bid, BigDecimal ask, String exchange, CurrencyPair name) {
+	public Quote(Date timestamp, BigDecimal bid, BigDecimal ask, String exchange, String name, CurrencyPair currencyPair) {
 		this.timestamp = timestamp;
 		this.bid = bid;
 		this.ask = ask;
 		this.exchange = exchange;
 		this.name = name;
+		this.currencyPair = currencyPair;
 	}
 	
 	@Override
@@ -28,7 +30,9 @@ public class Quote {
 			result = false;
 		} else {
 			Quote quote = (Quote) object;
-			if (this.getExchange().equals(quote.getExchange()) && this.getName().equals(quote.getName())) {
+			if (this.getExchange().equals(quote.getExchange()) && 
+					this.getName().equals(quote.getName()) &&
+					this.getCurrencyPair().equals(quote.getCurrencyPair())) {
 				result = true;
 			}
 		}
@@ -42,26 +46,43 @@ public class Quote {
 				" Bid: " + this.bid + 
 				" Ask: " + this.ask + 
 				" Exchange:" + this.exchange + 
-				" Name: "+this.name;
-	}
-	
-	public Date getTimestamp() {
-		return timestamp;
+				" Name: " + this.name +
+				" Currency Pair: " + this.currencyPair;
 	}
 
 	public BigDecimal getBid() {
 		return bid;
 	}
 
+	public void setBid(BigDecimal bid) {
+		this.bid = bid;
+	}
+
 	public BigDecimal getAsk() {
 		return ask;
+	}
+
+	public void setAsk(BigDecimal ask) {
+		this.ask = ask;
+	}
+
+	public Date getTimestamp() {
+		return timestamp;
 	}
 
 	public String getExchange() {
 		return exchange;
 	}
 
-	public CurrencyPair getName() {
+	public String getName() {
 		return name;
+	}
+
+	public CurrencyPair getCurrencyPair() {
+		return currencyPair;
+	}
+
+	public void setCurrencyPair(CurrencyPair currencyPair) {
+		this.currencyPair = currencyPair;
 	}
 }
