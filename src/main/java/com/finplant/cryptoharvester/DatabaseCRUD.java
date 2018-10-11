@@ -12,7 +12,7 @@ class DatabaseCRUD {
 	// JDBC driver name and database URL
 	static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";  
 	
-	//  Database credentials
+	// Database credentials
 	private static String url;
 	private static String user;
 	private static String pass;

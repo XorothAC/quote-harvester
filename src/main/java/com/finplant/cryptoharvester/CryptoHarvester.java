@@ -3,7 +3,6 @@ package com.finplant.cryptoharvester;
 import info.bitrich.xchangestream.core.*;
 import info.bitrich.xchangestream.binance.*;
 import info.bitrich.xchangestream.poloniex2.*;
-import io.reactivex.disposables.Disposable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,9 +49,11 @@ public class CryptoHarvester {
 			}
 		}
 
+		// Buffer operations
 		while(true) {
 			Thread.sleep(flush_period_ms);
 			
+			// Synthetic instrument generator and buffer update
 			for (Instrument instrument : setup.getInstruments()) {
 				if (instrument.getDepends() != null && !syntheticQuoteBuffer.isEmpty()) {
 					LOG.info(String.valueOf(syntheticQuoteBuffer.size()));
@@ -79,6 +80,7 @@ public class CryptoHarvester {
 			for (Quote quote : syntheticQuoteBuffer) {
 				LOG.info(quote.toString());
 			}
+			// Database write and buffer flush
 			db.writeToDB(quoteBuffer);
 		}
 	}
@@ -93,15 +95,15 @@ public class CryptoHarvester {
 		exchange.connect(subscription).blockingAwait();
 		LOG.info("Connected to exchange: " + exchange.toString());
 		
+		// Subscribe to ticker
 		try {
-			Disposable sub = exchange.getStreamingMarketDataService().getTicker(currencyPair)
+			exchange.getStreamingMarketDataService().getTicker(currencyPair)
 				.subscribe(ticker -> {
 						Quote quote = new Quote(ticker.getTimestamp(), ticker.getBid(), 
 								ticker.getAsk(), exchange.toString(), instrument, currencyPair);
 						addOrReplaceQuote(buffer, quote);
 					},
 					throwable -> LOG.error("ERROR in getting tickers: ", throwable));
-//			sub.dispose();
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -109,6 +111,7 @@ public class CryptoHarvester {
 		}
 	}
 	
+	// Add or replace current quote in buffer
 	public static void addOrReplaceQuote(List<Quote> buffer, Quote quote) {
 		if (buffer.contains(quote)) {
 			buffer.remove(quote);
@@ -116,25 +119,20 @@ public class CryptoHarvester {
 		buffer.add(quote);
 	}
 	
+	// Synthetic instrument generator
 	public static Quote syntheticInsrumentGenerator(StreamingExchange exchange, List<Quote> buffer, Instrument instrument) {
-//		ETH/USD  |  ETH/BTC  BTC/USDT  | (ETH/BTC)*(BTC/USDT)= (ETH*BTC)/(BTC*USDT)= ETH/USDT
-//		ETH/USD  |  ETH/BCH  USD/BCH   | (ETH/BCH)/(USD/BCH) = (ETH*BCH)/(USD*BCH) = ETH/USD
-//					quote1   quote2
-//	    X/Z      |  X/Y      Y/Z       | (X/Y)*(Y/Z)		 = XY/ZY			   = X/Z
-//		X/Z		 |	X/Y		 Z/Y	   | (X/Y)/(Z/Y)		 = XY/ZY			   = X/Z
-//		X/Z		 |  Y/X		 Y/Z       | (Y/Z)/(Y/X)		 = XY/ZY			   = X/Z
-//		X/Z		 |  Y/X		 Z/Y       | (Z/Y)/((Z/Y)^2 *Y/X)= (Z/Y)/(Z^2 / XY)	   = (Z*XY)/(Y*Z^2) = X/Z
-		
 		Quote quote = null;
 		
 		String instrument1 = instrument.getDepends().get(0);
 		String instrument2 = instrument.getDepends().get(1);
 
+		// Try to grab the two needed quotes
 		int bufferIndex1 = buffer.indexOf(new Quote(null, null, null, 
 				exchange.toString(), instrument.getName(), new CurrencyPair(instrument1)));
 		int bufferIndex2 = buffer.indexOf(new Quote(null, null, null, 
 				exchange.toString(), instrument.getName(), new CurrencyPair(instrument2)));
 		
+		// If both quotes exist in synthetic instrument buffer, continue
 		if (bufferIndex1 > -1 && bufferIndex2 > -1) {
 			quote = new Quote(null, null, null, 
 					exchange.toString(), instrument.getName(), new CurrencyPair(instrument.getInstrument()));
@@ -152,6 +150,7 @@ public class CryptoHarvester {
 				split2 = split;
 			}
 			
+			// Synthetic quote bid and ask calculations
 			if (split1[1].equals(split2[0])) {
 				quote.setBid(quote1.getBid().multiply(quote2.getBid()));
 				quote.setAsk(quote1.getAsk().multiply(quote2.getAsk()));
