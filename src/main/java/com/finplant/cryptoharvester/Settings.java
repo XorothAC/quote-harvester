@@ -25,7 +25,7 @@ class Settings {
 		this.db = db;
 	}
 
-	public int getFlush_period_s() {
+	public int getFlushPeriodS() {
 		return flush_period_s;
 	}
 

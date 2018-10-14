@@ -16,11 +16,21 @@ class DatabaseCRUD {
 	private static String url;
 	private static String user;
 	private static String pass;
+	private Connection conn;
 
 	public DatabaseCRUD(String url, String user, String pass) {
 		DatabaseCRUD.url = "jdbc:mysql://"+url+"/sys";
 		DatabaseCRUD.user = user;
 		DatabaseCRUD.pass = pass;
+		
+		
+		try {
+			LOG.info("Connecting to database...");
+			conn = DriverManager.getConnection(url,user,pass);
+			LOG.info("Connected to database.");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void createQuotesTable() {
@@ -54,6 +64,10 @@ class DatabaseCRUD {
 				"VALUES"+quotesString;
 		quotes.clear();
 		connectAndExecute(sql);
+	}
+	
+	public static void connect() {
+		
 	}
 	
 	public static void connectAndExecute(String sql) {
