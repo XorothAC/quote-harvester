@@ -19,7 +19,7 @@ public class CryptoHarvester {
 	private static final Logger LOG = LoggerFactory.getLogger(CryptoHarvester.class);
 	private static final Settings setup = Settings.readYaml();
 	
-	public static void main(String[] args) throws InterruptedException  {
+	public static void main(String[] args) {
 		// Initialization Code
 		DatabaseCRUD db = 
 				new DatabaseCRUD(setup.getDb().get("url"), setup.getDb().get("user"), setup.getDb().get("password"));
@@ -34,7 +34,6 @@ public class CryptoHarvester {
 		Runtime.getRuntime().addShutdownHook(new Thread(){public void run(){
 			for (Disposable sub : ongoingSubscriptions) {
 				sub.dispose();
-				
 			}
 			
 			try {
@@ -66,9 +65,13 @@ public class CryptoHarvester {
 			}
 		}
 		
-		// Buffer operations
+		// Quotes buffer operations
 		while (true) {
-			Thread.sleep(flush_period_ms);
+			try {
+				Thread.sleep(flush_period_ms);
+			} catch (InterruptedException e) {
+				ErrorHandler.logError("Thread sleep error: ", e);
+			}
 			
 			// Synthetic instrument generator and buffer update
 			for (Instrument instrument : setup.getInstruments()) {
@@ -163,7 +166,7 @@ public class CryptoHarvester {
 				exchangeName, instrument.getName(), new CurrencyPair(instrument1)));
 		int bufferIndex2 = buffer.indexOf(new Quote(null, null, null, 
 				exchangeName, instrument.getName(), new CurrencyPair(instrument2)));
-		
+
 		// If both quotes exist in synthetic instrument buffer, continue
 		if (bufferIndex1 > -1 && bufferIndex2 > -1) {
 			quote = new Quote(null, null, null, 

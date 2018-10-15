@@ -13,10 +13,12 @@ import org.slf4j.LoggerFactory;
 
 class Settings {
 	private static final Logger LOG = LoggerFactory.getLogger(Settings.class);
-
+	
+	@JsonProperty("db")
 	private Map<String, String> db;
 	@JsonProperty("flush_period_s")
 	private int flush_period_s;
+	@JsonProperty("instruments")
 	private List<Instrument> instruments;
 	
 	public Map<String, String> getDb() {
@@ -51,21 +53,25 @@ class Settings {
 		public String getName() {
 			return name;
 		}
+		
 		public void setName(String name) {
 			this.name = name;
 		}
+		
 		public String getInstrument() {
 			return instrument;
 		}
+		
 		public void setInstrument(String instrument) {
 			this.instrument = instrument;
 		}
+		
 		public List<String> getDepends() {
 			return depends;
 		}
+		
 		public void setDepends(List<String> depends) {
 			this.depends = depends;
 		}
-		
 	}
 }
