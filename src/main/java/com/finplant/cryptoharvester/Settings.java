@@ -1,5 +1,6 @@
 package com.finplant.cryptoharvester;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.File;
@@ -14,6 +15,7 @@ class Settings {
 	private static final Logger LOG = LoggerFactory.getLogger(Settings.class);
 
 	private Map<String, String> db;
+	@JsonProperty("flush_period_s")
 	private int flush_period_s;
 	private List<Instrument> instruments;
 	
@@ -23,10 +25,6 @@ class Settings {
 
 	public int getFlushPeriodS() {
 		return flush_period_s;
-	}
-
-	public void setFlush_period_s(int flush_period_s) {
-		this.flush_period_s = flush_period_s;
 	}
 
 	public List<Instrument> getInstruments() {
