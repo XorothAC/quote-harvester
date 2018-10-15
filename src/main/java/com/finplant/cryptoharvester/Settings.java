@@ -21,10 +21,6 @@ class Settings {
 		return db;
 	}
 
-	public void setDb(Map<String, String> db) {
-		this.db = db;
-	}
-
 	public int getFlushPeriodS() {
 		return flush_period_s;
 	}
@@ -37,18 +33,14 @@ class Settings {
 		return instruments;
 	}
 
-	public void setInstruments(List<Instrument> instruments) {
-		this.instruments = instruments;
-	}
-
 	public static Settings readYaml() {
 	    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-	    File file = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"/src/main/resources/settings.yml");
+	    File file = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"/settings.yml");
 	    LOG.info("YAML settings file: "+file.toString());
 	    try {
 			return mapper.readValue(file, Settings.class);
 		} catch (Exception e) {
-			e.printStackTrace();
+			ErrorHandler.logError("YAML settings file error: ", e);
 		}
 	    return null;
 	}

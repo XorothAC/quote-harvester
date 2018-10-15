@@ -5,6 +5,7 @@ import info.bitrich.xchangestream.binance.*;
 import info.bitrich.xchangestream.poloniex2.*;
 import io.reactivex.disposables.Disposable;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +34,13 @@ public class CryptoHarvester {
 		Runtime.getRuntime().addShutdownHook(new Thread(){public void run(){
 			for (Disposable sub : ongoingSubscriptions) {
 				sub.dispose();
+				
+			}
+			
+			try {
+				db.getConnection().close();
+			} catch (SQLException e) {
+				ErrorHandler.logError("Database connection closure error: ", e);
 			}
 		}});
 		
@@ -95,7 +103,7 @@ public class CryptoHarvester {
 			}
 			
 			// Write to database and flush quote buffer
-			db.prepareStatement(quoteBuffer);
+			db.quoteBatchStatement(quoteBuffer);
 		}
 	}
 	
@@ -108,7 +116,11 @@ public class CryptoHarvester {
 		String exchangeName = exchange.toString().split("#")[0];
 		
 		// Connect to the Exchange WebSocket API. Blocking wait for the connection.
-		exchange.connect(subscription).blockingAwait();
+		try {
+			exchange.connect(subscription).blockingAwait();
+		} catch (Exception e) {
+			ErrorHandler.logError("Exchange connection error: ", e);
+		}
 		LOG.info("Connected to exchange: " + exchangeName);
 
 		// Subscribe to ticker

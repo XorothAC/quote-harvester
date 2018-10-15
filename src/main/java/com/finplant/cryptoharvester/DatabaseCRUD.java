@@ -37,6 +37,10 @@ class DatabaseCRUD {
 		}
 	}
 	
+	public Connection getConnection() {
+		return conn;
+	}
+	
 	public void createQuotesTable() {
 		String sql = "CREATE TABLE IF NOT EXISTS QUOTES (" +
                 "ID int(11) NOT NULL AUTO_INCREMENT, " +
@@ -54,7 +58,7 @@ class DatabaseCRUD {
 		executeSQL(sql);
 	}
 	
-	public void prepareStatement(List<Quote> quotes) {
+	public void quoteBatchStatement(List<Quote> quotes) {
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
@@ -108,9 +112,5 @@ class DatabaseCRUD {
 			
 			ErrorHandler.logError("SQL syntax error: ", e);
 		}
-	}
-	
-	public static void executeStatement(Statement stmt) {
-		
 	}
 }
