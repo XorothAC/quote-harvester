@@ -16,20 +16,24 @@ class DatabaseCRUD {
 	private static String url;
 	private static String user;
 	private static String pass;
-	private Connection conn;
+	private static Connection conn = null;
 
 	public DatabaseCRUD(String url, String user, String pass) {
-		DatabaseCRUD.url = "jdbc:mysql://"+url+"/sys";
+		DatabaseCRUD.url = "jdbc:mysql://"+url;
 		DatabaseCRUD.user = user;
 		DatabaseCRUD.pass = pass;
-		
-		
+		connectToDB();
+	}
+
+	private void connectToDB() {
 		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			
 			LOG.info("Connecting to database...");
 			conn = DriverManager.getConnection(url,user,pass);
 			LOG.info("Connected to database.");
 		} catch (Exception e) {
-			e.printStackTrace();
+			ErrorHandler.logError("Connection error to database: ", e);
 		}
 	}
 	
@@ -45,53 +49,68 @@ class DatabaseCRUD {
                 "KEY QUOTES_TIME_IDX (TIME) USING BTREE, " +
                 "KEY QUOTES_SYNTHETIC_IDX (NAME) USING BTREE" +
                 ") ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8";
+		
 		LOG.info("Attempting to create QUOTES table in database...");
-		
-		connectAndExecute(sql);
+		executeSQL(sql);
 	}
 	
-	public void writeToDB(List<Quote> quotes) {
-		String quotesString = "";
-		for (Quote quote : quotes) {
-			quotesString += ",(" + "now()" + ", " + 
-					quote.getBid().toString() + ", " + 
-					quote.getAsk().toString() + ", '" + 
-					quote.getExchange() + "', '" + 
-					quote.getName() + "')";
-		}
-		quotesString = quotesString.substring(1);
-		String sql = "INSERT INTO QUOTES (TIME, BID, ASK, EXCHANGE, NAME) " +
-				"VALUES"+quotesString;
-		quotes.clear();
-		connectAndExecute(sql);
-	}
-	
-	public static void connect() {
-		
-	}
-	
-	public static void connectAndExecute(String sql) {
-		Connection conn = null;
+	public void prepareStatement(List<Quote> quotes) {
 		Statement stmt = null;
-		
 		try {
-			Class.forName("com.mysql.cj.jdbc.Driver");
+			stmt = conn.createStatement();
+			for (Quote quote : quotes) {
+				stmt.addBatch("INSERT INTO QUOTES(TIME, BID, ASK, EXCHANGE, NAME) "
+						+ "VALUES (" + "now()" + ", " + 
+								quote.getBid().toString() + ", " + 
+								quote.getAsk().toString() + ", '" + 
+								quote.getExchange() + "', '" + 
+								quote.getName() + "')");
+			}
+			stmt.executeBatch();
+		} catch (SQLException e) {
+			try {
+				stmt.close();
+				conn.close();
+			} catch (Exception e1) {
+				ErrorHandler.logError("Statement closing error: ", e1);
+			}
 			
-			LOG.info("Connecting to database...");
-			conn = DriverManager.getConnection(url,user,pass);
-			LOG.info("Connected to database.");
-			
+			try {
+				conn.close();
+			} catch (Exception e1) {
+				ErrorHandler.logError("Connection closing error: ", e1);
+			}
+			ErrorHandler.logError("SQL syntax error: ", e);
+		}
+		
+		quotes.clear();
+	}
+
+	public static void executeSQL(String sql) {
+		Statement stmt = null;
+	
+		try {
 			stmt = conn.createStatement();
 			stmt.executeUpdate(sql);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
+		} catch (SQLException e) {
 			try {
-				if(conn!=null) conn.close();
-				LOG.info("Connection closed.");
-			} catch (Exception e) {
-				e.printStackTrace();
+				stmt.close();
+				conn.close();
+			} catch (Exception e1) {
+				ErrorHandler.logError("Statement closing error: ", e1);
 			}
+			
+			try {
+				conn.close();
+			} catch (Exception e1) {
+				ErrorHandler.logError("Connection closing error: ", e1);
+			}
+			
+			ErrorHandler.logError("SQL syntax error: ", e);
 		}
+	}
+	
+	public static void executeStatement(Statement stmt) {
+		
 	}
 }

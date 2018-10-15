@@ -27,6 +27,14 @@ public class CryptoHarvester {
 		
 		List<Quote> quoteBuffer = new ArrayList<Quote>();
 		List<Quote> syntheticQuoteBuffer = new ArrayList<Quote>();
+		List<Disposable> ongoingSubscriptions = new ArrayList<Disposable>();
+		
+		// Subscription socket terminator
+		Runtime.getRuntime().addShutdownHook(new Thread(){public void run(){
+			for (Disposable sub : ongoingSubscriptions) {
+				sub.dispose();
+			}
+		}});
 		
 		StreamingExchange binanceExchange = 
 				StreamingExchangeFactory.INSTANCE.createExchange(BinanceStreamingExchange.class.getName());
@@ -38,18 +46,18 @@ public class CryptoHarvester {
 			if (instrument.getDepends() == null) {
 				CurrencyPair currencyPair = new CurrencyPair(instrument.getInstrument());
 				LOG.info(currencyPair.toString());
-				subscribeToExchange(binanceExchange, currencyPair, instrument.getName(), quoteBuffer);
-				subscribeToExchange(poloniexExchange, currencyPair, instrument.getName(), quoteBuffer);
+				ongoingSubscriptions.add(subscribeToExchange(binanceExchange, currencyPair, instrument.getName(), quoteBuffer));
+				ongoingSubscriptions.add(subscribeToExchange(poloniexExchange, currencyPair, instrument.getName(), quoteBuffer));
 			} else {
 				for (String syntheticPair : instrument.getDepends()) {
 					CurrencyPair currencyPair = new CurrencyPair(syntheticPair);
 					LOG.info(currencyPair.toString());
-					subscribeToExchange(binanceExchange, currencyPair, instrument.getName(), syntheticQuoteBuffer);
-					subscribeToExchange(poloniexExchange, currencyPair, instrument.getName(), syntheticQuoteBuffer);
+					ongoingSubscriptions.add(subscribeToExchange(binanceExchange, currencyPair, instrument.getName(), syntheticQuoteBuffer));
+					ongoingSubscriptions.add(subscribeToExchange(poloniexExchange, currencyPair, instrument.getName(), syntheticQuoteBuffer));
 				}
 			}
 		}
-
+		
 		// Buffer operations
 		while (true) {
 			Thread.sleep(flush_period_ms);
@@ -57,7 +65,6 @@ public class CryptoHarvester {
 			// Synthetic instrument generator and buffer update
 			for (Instrument instrument : setup.getInstruments()) {
 				if (instrument.getDepends() != null && !syntheticQuoteBuffer.isEmpty()) {
-					LOG.info(String.valueOf(syntheticQuoteBuffer.size()));
 					Quote binanceQuote = 
 							syntheticInsrumentGenerator(binanceExchange, syntheticQuoteBuffer, instrument);
 					Quote poloniexQuote = 
@@ -74,23 +81,30 @@ public class CryptoHarvester {
 			}
 			
 			LOG.info("Size of quote buffer: " + String.valueOf(quoteBuffer.size()));
-			for (Quote quote : quoteBuffer) {
-				LOG.info(quote.toString());
+			if (!quoteBuffer.isEmpty()) { 
+				for (Quote quote : quoteBuffer) {
+					LOG.info(quote.toString());
+				}
 			}
+			
 			LOG.info("Size of synthetic quote buffer: " + String.valueOf(syntheticQuoteBuffer.size()));
-			for (Quote quote : syntheticQuoteBuffer) {
-				LOG.info(quote.toString());
+			if (!syntheticQuoteBuffer.isEmpty()) {
+				for (Quote quote : syntheticQuoteBuffer) {
+					LOG.info(quote.toString());
+				}
 			}
-			// Database write and buffer flush
-			db.writeToDB(quoteBuffer);
+			
+			// Write to database and flush quote buffer
+			db.prepareStatement(quoteBuffer);
 		}
 	}
 	
-	public static void subscribeToExchange(StreamingExchange exchange, CurrencyPair currencyPair, 
+	public static Disposable subscribeToExchange(StreamingExchange exchange, CurrencyPair currencyPair, 
 			String instrument, List<Quote> buffer) {
 		// Specify subscription objects
 		ProductSubscription subscription = 
 				ProductSubscription.create().addTicker(currencyPair).build();
+		Disposable sub = null;
 		String exchangeName = exchange.toString().split("#")[0];
 		
 		// Connect to the Exchange WebSocket API. Blocking wait for the connection.
@@ -99,18 +113,21 @@ public class CryptoHarvester {
 
 		// Subscribe to ticker
 		try {
-			Disposable sub = exchange.getStreamingMarketDataService().getTicker(currencyPair)
+			sub = exchange.getStreamingMarketDataService().getTicker(currencyPair)
 				.subscribe(ticker -> {
 						Quote quote = new Quote(ticker.getTimestamp(), ticker.getBid(), 
 								ticker.getAsk(), exchangeName, instrument, currencyPair);
 						addOrReplaceQuote(buffer, quote);
 					},
-					throwable -> LOG.error("ERROR in getting tickers: ", throwable));
+					throwable -> ErrorHandler.logThrowable("Ticker error: ", throwable));
 		} catch (Exception e) {
-			e.printStackTrace();
+			sub.dispose();
+			ErrorHandler.logError("Subscription error: ", e);
 		} finally {
 			exchange.disconnect();
 		}
+		
+		return sub;
 	}
 	
 	// Add or replace current quote in buffer
